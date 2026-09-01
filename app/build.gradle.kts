@@ -11,7 +11,7 @@ plugins {
 
 android {
   namespace = "com.example"
-  compileSdk { version = release(36) { minorApiLevel = 1 } }
+  compileSdk = 36
 
   defaultConfig {
     applicationId = "com.aistudio.clientaccountspro.txvdwz"
@@ -24,18 +24,22 @@ android {
   }
 
   signingConfigs {
-    create("release") {
-      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
-      storeFile = file(keystorePath)
-      storePassword = System.getenv("STORE_PASSWORD")
-      keyAlias = "upload"
-      keyPassword = System.getenv("KEY_PASSWORD")
-    }
-    create("debugConfig") {
-      storeFile = file("${rootDir}/debug.keystore")
-      storePassword = "android"
-      keyAlias = "androiddebugkey"
-      keyPassword = "android"
+    val keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+    val keystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+    val keyAliasVal = System.getenv("ANDROID_KEY_ALIAS")
+    val keyPasswordVal = System.getenv("ANDROID_KEY_PASSWORD")
+
+    if (!keystorePath.isNullOrEmpty() &&
+        !keystorePassword.isNullOrEmpty() &&
+        !keyAliasVal.isNullOrEmpty() &&
+        !keyPasswordVal.isNullOrEmpty()
+    ) {
+      create("release") {
+        storeFile = file(keystorePath)
+        storePassword = keystorePassword
+        keyAlias = keyAliasVal
+        keyPassword = keyPasswordVal
+      }
     }
   }
 
@@ -47,7 +51,9 @@ android {
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "proguard-rules.pro"
       )
-      signingConfig = signingConfigs.getByName("release")
+      signingConfigs.findByName("release")?.let {
+        signingConfig = it
+      }
     }
 
     debug { }
